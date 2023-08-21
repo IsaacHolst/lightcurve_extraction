@@ -1342,7 +1342,7 @@ class lightcurve(object):
         
         colour_indices = []
         
-        for i in range(len(colour_df)):
+        for i in range(len(colour_df)-1):
             filter1 = str(colour_df.loc[i, 'filter'])
             filter2 = str(colour_df.loc[i+1, 'filter'])
             if (filter2 + '-' + filter1) in colour_df.columns:
