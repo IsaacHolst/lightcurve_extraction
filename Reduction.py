@@ -1321,6 +1321,56 @@ class lightcurve(object):
         fig = self.plot_lightcurve(filt, name = name)
             
         self.save_results(name)
-    
-    
+        
+    def colour_estimate(self):
+        self.get_filters()
+        results = pd.read_csv(self.input_path + '/' + self.name + '_results.csv')
+        
+        colour_df = pd.DataFrame(data = {'filter': [], 'midtime': [], 'mag': [], 'mag_err': []})
+        for filt in self.filters:
+            temp_df = pd.DataFrame(data = {'filter': [str(filt)], 'midtime': np.array(results[(str(filt) + '_midtime')]), 'mag': np.array(results[(str(filt) + '_object_mag')]), 'mag_err': np.array(results[(str(filt) + '_object_mag_err')])})
+            colour_df = pd.concat([colour_df, temp_df])
+        
+        colour_df.dropna(how = 'any', inplace = True)
+        colour_df.sort_values(by= ['midtime'], inplace = True)
+        
+        colour_indices = []
+        
+        for i in range(len(colour_df)):
+            filter1 = str(colour_df.loc[i, 'filter'])
+            filter2 = str(colour_df.loc[i+1, 'filter'])
+            if (filter2 + '-' + filter1) in colour_df.columns:
+                colour_df.loc[i, (filter2 + '-' + filter1)] = colour_df.loc[i+1, 'mag'] - colour_df.loc[i, 'mag']
+                colour_df.loc[i, (filter2 + '-' + filter1 + '_err')] = colour_df.loc[i+1, 'mag_err'] - colour_df.loc[i, 'mag_err']
+            
+            elif not (str(colour_df.loc[i, 'filter']) + '-' + str(colour_df.loc[i+1, 'filter'])) in colour_df.columns:
+                colour_df[(filter1 + '-' + filter2)] = np.nan
+                colour_df[(filter1 + '-' + filter2 + '_err')] = np.nan
+                
+                colour_indices.append((filter1 + '-' + filter2))
+                
+                colour_df.loc[i, (filter1 + '-' + filter2)] = colour_df.loc[i, 'mag'] - colour_df.loc[i+1, 'mag']
+                colour_df.loc[i, (filter1 + '-' + filter2 + '_err')] = colour_df.loc[i, 'mag_err'] - colour_df.loc[i+1, 'mag_err']
+            
+            else:
+                colour_df.loc[i, (filter1 + '-' + filter2)] = colour_df.loc[i, 'mag'] - colour_df.loc[i+1, 'mag']
+                colour_df.loc[i, (filter1 + '-' + filter2 + '_err')] = colour_df.loc[i, 'mag_err'] - colour_df.loc[i+1, 'mag_err']
+        
+        colour_df['colour_index'] = np.nan
+        colour_df['mean_colour'] = np.nan
+        colour_df['mean_colour_err'] = np.nan
+        
+        for i in range(len(colour_indices)):
+            colour_df.loc[i, 'colour_index'] = colour_indices[i]
+            colour_df.loc[i, 'mean_colour'] = np.nanmean(np.array(colour_df[colour_indices[i]]))
+            
+            errors = np.array(colour_df[(colour_indices[i] + '_err')])
+            errors = errors[~np.isnan(errors)]
+                              
+            sum_err = 0
+            for j in errors:
+                sum_err += j**2
+            
+            #propagate the mean error
+            colour_df.loc[i, 'mean_colour_err'] = np.sqrt(sum_err)/len(errors)
     
