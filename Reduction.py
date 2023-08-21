@@ -1322,9 +1322,13 @@ class lightcurve(object):
             
         self.save_results(name)
         
-    def colour_estimate(self):
+    def colour_estimate(self, name = None):
         self.get_filters()
-        results = pd.read_csv(self.input_path + '/' + self.name + '_results.csv')
+        
+        if name == None:
+            name = self.name
+        
+        results = pd.read_csv(self.input_path + '/' + name + '_results.csv')
         
         colour_df = pd.DataFrame(data = {'filter': [], 'midtime': [], 'mag': [], 'mag_err': []})
         for filt in self.filters:
@@ -1374,3 +1378,4 @@ class lightcurve(object):
             #propagate the mean error
             colour_df.loc[i, 'mean_colour_err'] = np.sqrt(sum_err)/len(errors)
     
+        colour_df.to_csv(self.input_path + '/' + name + '_colour.csv', index = False)
