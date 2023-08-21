@@ -1050,7 +1050,7 @@ class lightcurve(object):
         filt : str
             filter name
         """
-        fwhm = pd.read_csv(self.input_path + '/' + filt + 'fwhm_list.csv')
+        fwhm = pd.read_csv(self.input_path + '/' + filt + '_fwhm_list.csv')
         self.fwhm = list(fwhm['fwhm'])
     
     def search_field(self, radius, img_number = None):
