@@ -387,7 +387,7 @@ class lightcurve(object):
             science = CCDData.read(science_images[i], unit = u.electron)
             
             #run bash terminal script to solve field
-            script_path = str(os.getcwd) + '/solve_field.sh'
+            script_path = str(os.getcwd()) + '/solve_field.sh'
             
             subprocess.call('%s %s %s %s %s %s' % (script_path, (os.path.basename(science_images[i])).removesuffix('.fit'), str(science.header['RA']), str(science.header['DEC']), str(science_images[i]), self.input_path + '/Reduced/Extra'), shell=True)
             wcs_image = glob.glob(self.input_path + '/Reduced/Science/' + filt + '/*wcs.new')
