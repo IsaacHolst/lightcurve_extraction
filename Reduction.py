@@ -1338,6 +1338,8 @@ class lightcurve(object):
         colour_df.dropna(how = 'any', inplace = True)
         colour_df.sort_values(by= ['midtime'], inplace = True)
         
+        colour_df.reset_index(level = 0, inplace=True)
+        
         colour_indices = []
         
         for i in range(len(colour_df)):
