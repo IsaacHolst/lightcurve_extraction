@@ -1332,7 +1332,7 @@ class lightcurve(object):
         
         colour_df = pd.DataFrame(data = {'filter': [], 'midtime': [], 'mag': [], 'mag_err': []})
         for filt in self.filters:
-            temp_df = pd.DataFrame(data = {'filter': [str(filt)], 'midtime': np.array(results[(str(filt) + '_midtime')]), 'mag': np.array(results[(str(filt) + '_object_mag')]), 'mag_err': np.array(results[(str(filt) + '_object_mag_err')])})
+            temp_df = pd.DataFrame(data = {'filter': str(filt), 'midtime': np.array(results[(str(filt) + '_midtime')]), 'mag': np.array(results[(str(filt) + '_object_mag')]), 'mag_err': np.array(results[(str(filt) + '_object_mag_err')])})
             colour_df = pd.concat([colour_df, temp_df])
         
         colour_df.dropna(how = 'any', inplace = True)
