@@ -705,17 +705,19 @@ class lightcurve(object):
             #create masked array with matched objects
             objids, distances = ps1.xmatch(coords)
             
-            if filt == 'r':
-                self.second_filt = 'i'
-                
-            elif (filt == 'g') or (filt == 'i'):
-                self.second_filt = 'r'
-                
-            elif filt == 'z':
-                self.second_filt = 'y'
-                
-            else:
-                self.second_filt = 'z'
+            if self.second_filt == None
+            
+                if filt == 'r':
+                    self.second_filt = 'i'
+                    
+                elif (filt == 'g') or (filt == 'i'):
+                    self.second_filt = 'r'
+                    
+                elif filt == 'z':
+                    self.second_filt = 'y'
+                    
+                else:
+                    self.second_filt = 'z'
             
             #define data to lookup from catalogue
             if filt == 'i':
@@ -1121,6 +1123,8 @@ class lightcurve(object):
         
         if name == None:
             name = self.name
+            
+        self.get_filters()
         
         filt_index = list(self.filters).index(filt)
         
@@ -1154,7 +1158,7 @@ class lightcurve(object):
         fig.savefig(self.input_path + '/' + self.day + '_' + name + '_' + filt + '_lightcurve.png')
         return fig
     
-    def full_data_reduction(self, biassec, trimsec, gain, readnoise, step = '1m', sigma_clip=3.0, colour = None):
+    def full_data_reduction(self, biassec, trimsec, gain, readnoise, step = '1m', sigma_clip=3.0, colour = None, second_filter = None):
         """
         Complete all necessary reduction and photometry steps for a lightcurve
 
@@ -1183,6 +1187,10 @@ class lightcurve(object):
         for filt in self.filters:
             if colour != None:
                 self.colour = colour[list(self.filters).index(filt)]
+                
+            if second_filter != None:
+                self.second_filter = second_filter[i]
+                
             self.plate_solve(filt)
             self.iterative(filt)
             self.detect_and_phot(filt)
@@ -1249,7 +1257,7 @@ class lightcurve(object):
         ref_df = pd.read_csv(self.input_path + '/' + filt + '_ref_frame_index.csv')
         self.ref_frame_index = list(ref_df['ref_frame_index'])[0]
     
-    def extract_lightcurve(self, step = '1m', name = None, colour = None):
+    def extract_lightcurve(self, step = '1m', name = None, colour = None, second_filter = None):
         """
         Complete lightcurve extraction steps if reduction and aperture
         photometry has already been done
@@ -1276,6 +1284,10 @@ class lightcurve(object):
         for filt in self.filters:
             if colour != None:
                 self.colour = colour[list(self.filters).index(filt)]
+                
+            if second_filter != None:
+                self.second_filter = second_filter[i]
+                
             self.get_epoch_range()
             self.get_ref_index(filt)
             m_ra, c_ra, m_dec, c_dec = self.ephemerides(step = step, name = name)
@@ -1312,6 +1324,10 @@ class lightcurve(object):
 
         if colour != None:
             self.colour = colour[list(self.filters).index(filt)]
+            
+        if second_filter != None:
+            self.second_filter = second_filter
+            
         self.get_epoch_range()
         self.get_ref_index(filt)
         m_ra, c_ra, m_dec, c_dec = self.ephemerides(step = step, name = name)
