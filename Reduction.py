@@ -167,6 +167,7 @@ class lightcurve(object):
         self.abs_mag = []
         self.length = None
         self.index = None
+        self.min_separations = []
         
     def __str__(self):
         
@@ -666,6 +667,8 @@ class lightcurve(object):
         
         aperture_images = sorted(glob.glob(self.input_path+ '/Reduced/Science/' + filt + '/*wcs_aperture.fit'))
         
+        self.min_separations = []
+        
         #initiate lists and dataframe
         temp_objids = []
         temp1_objids = []
@@ -699,7 +702,9 @@ class lightcurve(object):
         
             #calculate separations between object and each matched source
             separations = coords.separation(eph_coord)
-        
+            
+            self.min_separations.append(np.nanmin(np.array(separations)))
+            
             #download PS1 Catalog
             if len(ps1.search(coords)[0]) < 500:
                 ps1.fetch_field(coords)
