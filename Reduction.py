@@ -971,6 +971,7 @@ class lightcurve(object):
         m_inst = float(phot['r_inst'][object_mask])
         m = C*colour + zp + m_inst
         m_inst_err = float(phot['r_inst_err'][object_mask])
+        combined_col_err = 
         m_err = np.sqrt((colour**2)*(C_err**2) + (m_inst_err**2) + (zp_err**2))
         
         median_rel = []
@@ -1392,7 +1393,7 @@ class lightcurve(object):
             #calculate colour indices
             if (filter2 + '-' + filter1) in colour_df.columns:
                 colour_df.loc[i, (filter2 + '-' + filter1)] = colour_df.loc[i+1, 'mag'] - colour_df.loc[i, 'mag']
-                colour_df.loc[i, (filter2 + '-' + filter1 + '_err')] = colour_df.loc[i+1, 'mag_err'] - colour_df.loc[i, 'mag_err']
+                colour_df.loc[i, (filter2 + '-' + filter1 + '_err')] = np.sqrt(colour_df.loc[i+1, 'mag_err']**2 + colour_df.loc[i, 'mag_err']**2)
             
             elif not (str(colour_df.loc[i, 'filter']) + '-' + str(colour_df.loc[i+1, 'filter'])) in colour_df.columns:
                 colour_df[(filter1 + '-' + filter2)] = np.nan
@@ -1401,11 +1402,11 @@ class lightcurve(object):
                 colour_indices.append((filter1 + '-' + filter2))
                 
                 colour_df.loc[i, (filter1 + '-' + filter2)] = colour_df.loc[i, 'mag'] - colour_df.loc[i+1, 'mag']
-                colour_df.loc[i, (filter1 + '-' + filter2 + '_err')] = colour_df.loc[i, 'mag_err'] - colour_df.loc[i+1, 'mag_err']
+                colour_df.loc[i, (filter1 + '-' + filter2 + '_err')] = np.sqrt(colour_df.loc[i, 'mag_err']**2 + colour_df.loc[i+1, 'mag_err']**2)
             
             else:
                 colour_df.loc[i, (filter1 + '-' + filter2)] = colour_df.loc[i, 'mag'] - colour_df.loc[i+1, 'mag']
-                colour_df.loc[i, (filter1 + '-' + filter2 + '_err')] = colour_df.loc[i, 'mag_err'] - colour_df.loc[i+1, 'mag_err']
+                colour_df.loc[i, (filter1 + '-' + filter2 + '_err')] = np.sqrt(colour_df.loc[i, 'mag_err']**2 + colour_df.loc[i+1, 'mag_err']**2)
         
         colour_df['colour_index'] = np.nan
         colour_df['mean_colour'] = np.nan
