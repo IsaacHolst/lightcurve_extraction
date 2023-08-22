@@ -103,9 +103,9 @@ class lightcurve(object):
 
         Parameters
         ----------
-        name : string
+        name : str
             name of moving object
-        input_path : string
+        input_path : str
             directory for science images
         telescope_id : int
             id number for telescope location in JPL Horizons system
