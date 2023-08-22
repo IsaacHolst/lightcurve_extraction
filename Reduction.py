@@ -86,7 +86,9 @@ class lightcurve(object):
     get_epoch_range: obtain start and end epochs of science data set
     get_filters: obtain filters list
     get_ref_index: obtain refernce frame index
-    extract_lightcurve: carry out magnitude calculation and calibration and plot lightcurve
+    extract_lightcurve: carry out magnitude calculation and calibration and plot lightcurve for each filter
+    extract_single_lightcurve: carry out magnitude calculation and calibration and plot lightcurve for one filter
+    colour_estimate: obtain colours of object from multifilter observation
     
     Static Methods
     --------------
@@ -705,7 +707,7 @@ class lightcurve(object):
             #create masked array with matched objects
             objids, distances = ps1.xmatch(coords)
             
-            if self.second_filt == None
+            if self.second_filt == None:
             
                 if filt == 'r':
                     self.second_filt = 'i'
@@ -758,11 +760,7 @@ class lightcurve(object):
             sources = pd.DataFrame(data = (list(d) for d in data), columns = columns)
             
             #determine only the stellar objects
-            
-            if (self.second_filt == 'z') or (self.second_filt  == 'r'):
-                star_objids = sources[(sources['imeanpsfmag']!=-999) & (sources['imeankronmag']!=-999) & ((sources['imeanpsfmag']-sources['imeankronmag'])<0.05) & (sources['imeanpsfmag']>=14) & (sources['imeanpsfmag']<=21) & ((sources[(str(self.second_filt) + 'meanpsfmag')] - sources[(str(filt) + 'meanpsfmag')]) <=1.0)]['objid']
-            else:
-                star_objids = sources[(sources['imeanpsfmag']!=-999) & (sources['imeankronmag']!=-999) & ((sources['imeanpsfmag']-sources['imeankronmag'])<0.05) & (sources['imeanpsfmag']>=14) & (sources['imeanpsfmag']<=21) & ((sources[(str(filt) + 'meanpsfmag')]-sources[(str(self.second_filt) + 'meanpsfmag')]) <=1.0)]['objid']
+            star_objids = sources[(sources['imeanpsfmag']!=-999) & (sources['imeankronmag']!=-999) & ((sources['imeanpsfmag']-sources['imeankronmag'])<0.05) & (sources['imeanpsfmag']>=14) & (sources['imeanpsfmag']<=21) & ((sources[(str(filt) + 'meanpsfmag')]-sources[(str(self.second_filt) + 'meanpsfmag')]) <=1.0)]['objid']
             
             #calculate instrumental magnitude and error for each star
             r_inst = -2.5*np.log10(phot['flux_fit'])
@@ -1150,6 +1148,8 @@ class lightcurve(object):
         ax.set_xlabel('JD')
         ax.set_ylabel('r_mag')
         
+        plt.title(('Day: ' + self.day + ' Name: ' + name + ' Filter: ' + filt))
+        
         if clip == True:
             ax.set_ylim(lower_ylim,upper_ylim)
         
@@ -1178,13 +1178,17 @@ class lightcurve(object):
             optional. Clip value for median sigma clipping
         colour: list
             optional. List of colour for each filter. Defaults to 0.2 for all filters
+        second_filter: list
+            optional. List of secondary filter bands for colour indices. i.e.
+            if you use an r-i colour, and measurement is in r band,
+            second_filter would be i. See defaults in catalogue_stars.
         """
         self.extract_and_overscan(biassec, trimsec)
         self.master_bias(gain, sigma_clip)
         self.master_flats(gain, sigma_clip)
         self.science_reduction(readnoise, gain)
         
-        for filt in self.filters:
+        for filt,i in zip(self.filters, range(len(self.filters))):
             if colour != None:
                 self.colour = colour[list(self.filters).index(filt)]
                 
@@ -1270,6 +1274,10 @@ class lightcurve(object):
             optional. Name of object to search for. Defaults to class object name.
         colour: list
             optional. List of colour for each filter. Defaults to 0.2 for all filters
+        second_filter: list
+            optional. List of secondary filter bands for colour indices. i.e.
+            if you use an r-i colour, and measurement is in r band,
+            second_filter would be i. See defaults in catalogue_stars.
         """
         #set name to class object name if not specified
         if name == None:
@@ -1281,7 +1289,7 @@ class lightcurve(object):
         
         self.get_filters()
             
-        for filt in self.filters:
+        for filt,i in zip(self.filters, range(len(self.filters))):
             if colour != None:
                 self.colour = colour[list(self.filters).index(filt)]
                 
@@ -1298,7 +1306,7 @@ class lightcurve(object):
             
         self.save_results(name)
         
-    def extract_single_lightcurve(self, filt, step = '1m', name = None, colour = None):
+    def extract_single_lightcurve(self, filt, step = '1m', name = None, colour = None, second_filter = None):
         """
         Complete lightcurve extraction steps if reduction and aperture
         photometry has already been done
@@ -1311,6 +1319,10 @@ class lightcurve(object):
             optional. Name of object to search for. Defaults to class object name.
         colour: list
             optional. List of colour for each filter. Defaults to 0.2 for all filters
+        second_filter: str
+            optional. Secondary filter band for colour index. i.e.
+            if you use an r-i colour, and measurement is in r band,
+            second_filter would be i. See defaults in catalogue_stars.
         """
         #set name to class object name if not specified
         if name == None:
@@ -1339,6 +1351,14 @@ class lightcurve(object):
         self.save_results(name)
         
     def colour_estimate(self, name = None):
+        """
+        Determine the colours of an object based on multifilter observations. 
+
+        Parameters
+        ----------
+        name : str
+            optional. Name of object to search for. Defaults to class object name.
+        """
         self.get_filters()
         
         if name == None:
@@ -1346,21 +1366,25 @@ class lightcurve(object):
         
         results = pd.read_csv(self.input_path + '/' + name + '_results.csv')
         
+        #create consistent dataframe with all magnitude measurements
         colour_df = pd.DataFrame(data = {'filter': [], 'midtime': [], 'mag': [], 'mag_err': []})
         for filt in self.filters:
             temp_df = pd.DataFrame(data = {'filter': str(filt), 'midtime': np.array(results[(str(filt) + '_midtime')]), 'mag': np.array(results[(str(filt) + '_object_mag')]), 'mag_err': np.array(results[(str(filt) + '_object_mag_err')])})
             colour_df = pd.concat([colour_df, temp_df])
         
+        #reformat dataframe for analysis
         colour_df.dropna(how = 'any', inplace = True)
         colour_df.sort_values(by= ['midtime'], inplace = True)
-        
         colour_df.reset_index(level = 0, inplace=True)
         
         colour_indices = []
         
         for i in range(len(colour_df)-1):
+            #set filter bands
             filter1 = str(colour_df.loc[i, 'filter'])
             filter2 = str(colour_df.loc[i+1, 'filter'])
+            
+            #calculate colour indices
             if (filter2 + '-' + filter1) in colour_df.columns:
                 colour_df.loc[i, (filter2 + '-' + filter1)] = colour_df.loc[i+1, 'mag'] - colour_df.loc[i, 'mag']
                 colour_df.loc[i, (filter2 + '-' + filter1 + '_err')] = colour_df.loc[i+1, 'mag_err'] - colour_df.loc[i, 'mag_err']
@@ -1382,6 +1406,7 @@ class lightcurve(object):
         colour_df['mean_colour'] = np.nan
         colour_df['mean_colour_err'] = np.nan
         
+        #calculate mean of each colour index and errors
         for i in range(len(colour_indices)):
             colour_df.loc[i, 'colour_index'] = colour_indices[i]
             colour_df.loc[i, 'mean_colour'] = np.nanmean(np.array(colour_df[colour_indices[i]]))
@@ -1395,5 +1420,6 @@ class lightcurve(object):
             
             #propagate the mean error
             colour_df.loc[i, 'mean_colour_err'] = np.sqrt(sum_err)/len(errors)
-    
+        
+        #save results to csv
         colour_df.to_csv(self.input_path + '/' + name + '_colour.csv', index = False)
