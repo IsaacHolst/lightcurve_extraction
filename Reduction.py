@@ -379,7 +379,7 @@ class lightcurve(object):
         filt : str
             filter name
         """
-        science_images = sorted(glob.glob(self.input_path + '/Reduced/Science/' + filt + '/*[!wcs].fit'))
+        science_images = sorted(glob.glob(self.input_path + '/Reduced/Science/' + filt + '/*[!wcs][!aperture][!iterative].fit'))
         
         #create path for saving extra plate solve files
         if not os.path.exists(self.input_path + '/Reduced/Extra'):
