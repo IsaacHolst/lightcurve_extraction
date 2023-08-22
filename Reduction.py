@@ -168,6 +168,7 @@ class lightcurve(object):
         self.length = None
         self.index = None
         self.min_separations = []
+        self.col_err = None
         
     def __str__(self):
         
@@ -971,8 +972,13 @@ class lightcurve(object):
         m_inst = float(phot['r_inst'][object_mask])
         m = C*colour + zp + m_inst
         m_inst_err = float(phot['r_inst_err'][object_mask])
-        combined_col_err = 
-        m_err = np.sqrt((colour**2)*(C_err**2) + (m_inst_err**2) + (zp_err**2))
+        
+        if self.col_err == None:
+            combined_col_err = np.sqrt((self.col_err/colour)**2 + (C_err/C)**2)*(C*colour)
+            m_err = np.sqrt(combined_col_err**2 + (m_inst_err**2) + (zp_err**2))
+        
+        else:
+            m_err = np.sqrt((colour**2)*(C_err**2) + (m_inst_err**2) + (zp_err**2)) 
         
         median_rel = []
         median_rel_err = []
@@ -1164,7 +1170,7 @@ class lightcurve(object):
         fig.savefig(self.input_path + '/' + self.day + '_' + name + '_' + filt + '_lightcurve.png')
         return fig
     
-    def full_data_reduction(self, biassec, trimsec, gain, readnoise, step = '1m', sigma_clip=3.0, colour = None, second_filter = None):
+    def full_data_reduction(self, biassec, trimsec, gain, readnoise, step = '1m', sigma_clip=3.0, colour = None, second_filter = None, col_err = None):
         """
         Complete all necessary reduction and photometry steps for a lightcurve
 
@@ -1188,6 +1194,8 @@ class lightcurve(object):
             optional. List of secondary filter bands for colour indices. i.e.
             if you use an r-i colour, and measurement is in r band,
             second_filter would be i. See defaults in catalogue_stars.
+        col_err: list
+            optional. list of colour errors for each filter.
         """
         self.extract_and_overscan(biassec, trimsec)
         self.master_bias(gain, sigma_clip)
@@ -1197,6 +1205,12 @@ class lightcurve(object):
         for filt,i in zip(self.filters, range(len(self.filters))):
             if colour != None:
                 self.colour = colour[list(self.filters).index(filt)]
+                
+            if col_err == None:
+                self.col_err = None
+                    
+            else:
+                self.col_err = col_err[i]
                 
             if second_filter != None:
                 self.second_filter = second_filter[i]
@@ -1267,7 +1281,7 @@ class lightcurve(object):
         ref_df = pd.read_csv(self.input_path + '/' + filt + '_ref_frame_index.csv')
         self.ref_frame_index = list(ref_df['ref_frame_index'])[0]
     
-    def extract_lightcurve(self, step = '1m', name = None, colour = None, second_filter = None):
+    def extract_lightcurve(self, step = '1m', name = None, colour = None, second_filter = None, col_err = None):
         """
         Complete lightcurve extraction steps if reduction and aperture
         photometry has already been done
@@ -1284,6 +1298,8 @@ class lightcurve(object):
             optional. List of secondary filter bands for colour indices. i.e.
             if you use an r-i colour, and measurement is in r band,
             second_filter would be i. See defaults in catalogue_stars.
+        col_err: list
+            optional. list of colour errors for each filter.
         """
         #set name to class object name if not specified
         if name == None:
@@ -1299,6 +1315,12 @@ class lightcurve(object):
             if colour != None:
                 self.colour = colour[list(self.filters).index(filt)]
                 
+            if col_err == None:
+                self.col_err = None
+                    
+            else:
+                self.col_err = col_err[i]
+                
             if second_filter != None:
                 self.second_filter = second_filter[i]
                 
@@ -1312,7 +1334,7 @@ class lightcurve(object):
             
         self.save_results(name)
         
-    def extract_single_lightcurve(self, filt, step = '1m', name = None, colour = None, second_filter = None):
+    def extract_single_lightcurve(self, filt, step = '1m', name = None, colour = None, second_filter = None, col_err = None):
         """
         Complete lightcurve extraction steps if reduction and aperture
         photometry has already been done
@@ -1323,12 +1345,14 @@ class lightcurve(object):
             optional. Time step for ephemerides with unit (d,h,m)
         name : str
             optional. Name of object to search for. Defaults to class object name.
-        colour: list
-            optional. List of colour for each filter. Defaults to 0.2 for all filters
+        colour: float
+            optional. Colour for the filter. Defaults to 0.2 for all filters
         second_filter: str
             optional. Secondary filter band for colour index. i.e.
             if you use an r-i colour, and measurement is in r band,
             second_filter would be i. See defaults in catalogue_stars.
+        col_err: float
+            optional. Colour error for the filter.
         """
         #set name to class object name if not specified
         if name == None:
@@ -1341,7 +1365,13 @@ class lightcurve(object):
             
 
         if colour != None:
-            self.colour = colour[list(self.filters).index(filt)]
+            self.colour = colour
+            
+        if col_err == None:
+            self.col_err = None
+            
+        else:
+            self.col_err = col_err
             
         if second_filter != None:
             self.second_filter = second_filter
