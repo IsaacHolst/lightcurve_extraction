@@ -2,9 +2,9 @@
 Script to reduce, plate solve and perform photometry on raw astronomical images. The script extracts a lightcurve for a given moving object and filter band. This code can also be used to obtain colours of the object based on multi filter observations. 
 
 ## Requirements
-calviacat (Kelley & Lister. 2019)
-photutils
-astroquery
+- calviacat (Kelley & Lister. 2019)
+- photutils
+- astroquery
 
 ## File Structure
 You must first create a folder for one observing run. Within this, there should be a folder called 'flats' containing all good flat field images for the run (providing this does not spread over too many days). There should also be folders for each nights' bias files named with 'Bias' and the day at beginning of observation - e.g. 'Bias16' for the bias images on the 16th. Each new telescope object pointing should then have a folder with its name - e.g. 'Ceres'. Within this, there should be a folder for each night of observing named in the format 'YYYYMMDD'. Once in this folder, the raw unzipped science images should be placed in a folder named 'Data'. 
@@ -26,30 +26,30 @@ Example of flats path:
 N.B. the bias and flat image paths can be set manually using the 'bias_path' and 'flat_path' class attributes.
 
 ## Initial Parameters
-name : str
+- name : str
 
 name of moving object
     
-input_path : str
+- input_path : str
 
 directory for raw science images
     
-telescope_id : int
+- telescope_id : int
 
 id number for telescope location in JPL Horizons system
 
 ## Outputs
 #### All outputs are saved in the input path directory.
 
-Lightcurves - Name format 'day_objectname_filter_lightcurve.png'
+- Lightcurves - Name format 'day_objectname_filter_lightcurve.png'
 
-FWHM - Dataframe of fwhm determined by aperture photometry with name format 'filter_fwhm_list.csv'
+- FWHM - Dataframe of fwhm determined by aperture photometry with name format 'filter_fwhm_list.csv'
 
-Reference frame index - Dataframe containing the index of reference frame for the filter observations. Name format is 'filter_ref_frame_index.csv'
+- Reference frame index - Dataframe containing the index of reference frame for the filter observations. Name format is 'filter_ref_frame_index.csv'
 
-Results - Dataframe of all magnitude results containing Time, calibrated magnitude, magnitude error and filter band. Name format is 'objectname_results.csv'
+- Results - Dataframe of all magnitude results containing Time, calibrated magnitude, magnitude error and filter band. Name format is 'objectname_results.csv'
 
-Colours - Dataframe of all the colours determined from multi filter observations. Name format is 'objectname_colour.csv'
+- Colours - Dataframe of all the colours determined from multi filter observations. Name format is 'objectname_colour.csv'
 
 ## Methods
 - extract_and_overscan: extract only specified hdu extension and do overscan correction
