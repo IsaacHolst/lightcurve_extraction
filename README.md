@@ -12,20 +12,30 @@ You must first create a folder for one observing run. Within this, there should 
 The input path should be given as the path to the raw science data for that night.
 
 Example of input path:
+
 ./VLT_March_2023/Ceres/20230312/Data
 
-Example of bias and flats path:
+Example of bias path:
+
 ./VLT_March_2023/Bias12/r987654.fit
+
+Example of flats path:
+
 ./VLT_March_2023/flats/r13579.fit
 
 N.B. the bias and flat image paths can be set manually using the 'bias_path' and 'flat_path' class attributes.
 
 ## Initial Parameters
 name : str
+
     name of moving object
+    
 input_path : str
+
     directory for raw science images
+    
 telescope_id : int
+
     id number for telescope location in JPL Horizons system
 
 ## Outputs
