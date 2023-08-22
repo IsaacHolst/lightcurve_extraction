@@ -399,6 +399,8 @@ class lightcurve(object):
                 new = Path(str(wcs_image[0]))
                 new.rename(new.with_suffix('.fit'))
             
+            os.remove(science_images[i]) #delete non platesolved image
+            
         print("Completed plate solving")
         
         
@@ -472,8 +474,12 @@ class lightcurve(object):
                 temp_file[1] = bintable
             
             #write file and close
-            temp_file.writeto(imgs[i], overwrite=True)
+            temp_file.writeto(wcs_images[i], overwrite=True)
             temp_file.close()
+            
+            #rename file
+            os.rename(wcs_images[i], imgs[i])
+            
             print('Loop: ' + str(i))
             
         print("Completed iterative photometry and obtained fwhm values")
@@ -519,13 +525,13 @@ class lightcurve(object):
             filter name
         """
         
-        wcs_images = sorted(glob.glob(self.input_path+ '/Reduced/Science/' + filt + '/*wcs.fit'))
+        wcs_images = sorted(glob.glob(self.input_path+ '/Reduced/Science/' + filt + '/*wcs_iterative.fit'))
         imgs = []
         temp_fwhm = []
         
         #create new name for saving
         for i in range(len(wcs_images)):
-            imgs.append(str(wcs_images[i].removesuffix('.fit') + '_aperture.fit'))
+            imgs.append(str(wcs_images[i].removesuffix('_iterative.fit') + '_aperture.fit'))
         
         for i in range(len(wcs_images)):
             
@@ -570,15 +576,18 @@ class lightcurve(object):
             
             #turn results in to bintable and add to hdulist
             bintable = fits.table_to_hdu(aper_stats)
-            if len(temp_file) == 1:
+            if len(temp_file) == 2:
                 temp_file.append(bintable)
                 
-            elif len(temp_file)== 2:
-                temp_file[1] = bintable
+            elif len(temp_file)== 3:
+                temp_file[2] = bintable
             
             #write file and close
-            temp_file.writeto(imgs[i], overwrite=True)
+            temp_file.writeto(wcs_images[i], overwrite=True)
             temp_file.close()
+            
+            #rename file
+            os.rename(wcs_images[i], imgs[i])
         
         #find frame with best fwhm as a reference frame
         self.ref_frame_index = temp_fwhm.index(min(temp_fwhm))
@@ -687,7 +696,7 @@ class lightcurve(object):
             image = fits.open(aperture_images[i])
             header = image[0].header
             wcs = WCS(image[0].header)
-            phot = Table(image[1].data)
+            phot = Table(image[2].data)
         
             #get catalog
             ps1 = cvc.PanSTARRS1('ps1_cat.db')
@@ -817,11 +826,11 @@ class lightcurve(object):
             
             #save table to hdu
             bintable = fits.table_to_hdu(phot)
-            if len(image) == 1:
+            if len(image) == 2:
                 image.append(bintable)
                 
-            elif len(image)== 2:
-                image[1] = bintable
+            elif len(image)== 3:
+                image[2] = bintable
             
             #write file and close
             image.writeto(aperture_images[i], overwrite=True)
@@ -899,7 +908,7 @@ class lightcurve(object):
         image = fits.open(aperture_images[self.ref_frame_index])
         header = image[0].header
         wcs = WCS(image[0].header)
-        phot = Table(image[1].data)
+        phot = Table(image[2].data)
         
         #create SkyCoord objects for all sources
         coords = SkyCoord.from_pixel(phot['xcentroid'], phot['ycentroid'], wcs, 0, mode='all')
@@ -974,11 +983,11 @@ class lightcurve(object):
         m_inst_err = float(phot['r_inst_err'][object_mask])
         
         if self.col_err == None:
-            combined_col_err = np.sqrt((self.col_err/colour)**2 + (C_err/C)**2)*(C*colour)
-            m_err = np.sqrt(combined_col_err**2 + (m_inst_err**2) + (zp_err**2))
+            m_err = np.sqrt((colour**2)*(C_err**2) + (m_inst_err**2) + (zp_err**2))
         
         else:
-            m_err = np.sqrt((colour**2)*(C_err**2) + (m_inst_err**2) + (zp_err**2)) 
+            combined_col_err = np.sqrt((self.col_err/colour)**2 + (C_err/C)**2)*(C*colour)
+            m_err = np.sqrt(combined_col_err**2 + (m_inst_err**2) + (zp_err**2))
         
         median_rel = []
         median_rel_err = []
