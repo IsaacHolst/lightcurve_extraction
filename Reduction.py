@@ -1060,7 +1060,7 @@ class lightcurve(object):
             filt_results = pd.DataFrame(data = {(str(filt) + '_midtime'): self.midtime[filt_index], (str(filt) + '_object_mag'): self.object_r_mag[filt_index], (str(filt) + '_object_mag_err'): self.object_r_mag_err[filt_index], (str(filt) + '_object_absolute_mag'): self.abs_mag[filt_index]})
             results = pd.concat([results, filt_results], axis = 1)
             
-        results.to_csv(self.input_path + '/' + name + '_results.csv', index = False)
+        results.to_csv(self.input_path + '/' + self.day + '_' +  name + '_results.csv', index = False)
     
     def get_fwhm(self, filt):
         """
