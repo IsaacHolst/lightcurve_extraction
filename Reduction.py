@@ -1222,7 +1222,7 @@ class lightcurve(object):
                 self.col_err = col_err[i]
                 
             if second_filter != None:
-                self.second_filter = second_filter[i]
+                self.second_filt = second_filter[i]
                 
             self.plate_solve(filt)
             self.iterative(filt)
@@ -1232,6 +1232,8 @@ class lightcurve(object):
             self.calibration(m_ra, c_ra, m_dec, c_dec, filt)
             self.magnitudes()
             fig = self.plot_lightcurve(filt)
+            
+            self.second_filt = None    
         
         self.save_results()
         
@@ -1331,7 +1333,7 @@ class lightcurve(object):
                 self.col_err = col_err[i]
                 
             if second_filter != None:
-                self.second_filter = second_filter[i]
+                self.second_filt = second_filter[i]
                 
             self.get_epoch_range()
             self.get_ref_index(filt)
@@ -1340,6 +1342,8 @@ class lightcurve(object):
             self.calibration(m_ra, c_ra, m_dec, c_dec, filt)
             self.magnitudes()
             fig = self.plot_lightcurve(filt, name = name)
+            
+            self.second_filt = None            
             
         self.save_results(name)
         
@@ -1383,7 +1387,7 @@ class lightcurve(object):
             self.col_err = col_err
             
         if second_filter != None:
-            self.second_filter = second_filter
+            self.second_filt = second_filter
             
         self.get_epoch_range()
         self.get_ref_index(filt)
@@ -1392,6 +1396,8 @@ class lightcurve(object):
         self.calibration(m_ra, c_ra, m_dec, c_dec, filt)
         self.magnitudes()
         fig = self.plot_lightcurve(filt, name = name)
+        
+        self.second_filt = None        
             
         self.save_results(name)
         
