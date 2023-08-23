@@ -1456,6 +1456,8 @@ class lightcurve(object):
         colour_df['colour_index'] = np.nan
         colour_df['mean_colour'] = np.nan
         colour_df['mean_colour_err'] = np.nan
+        colour_df['mean_colour2'] = np.nan
+        colour_df['mean_colour_err2'] = np.nan
         
         #calculate mean of each colour index and errors
         for i in range(len(colour_indices)):
@@ -1472,5 +1474,32 @@ class lightcurve(object):
             #propagate the mean error
             colour_df.loc[i, 'mean_colour_err'] = np.sqrt(sum_err)/len(errors)
         
+        #calculate mean of each colour index and errors
+        for i in range(len(colour_indices)):
+            colour_df.loc[i, 'colour_index'] = colour_indices[i]
+            colours = np.array(colour_df[colour_indices[i]])
+            colours = colours[~np.isnan(colours)]
+            median_col = np.nanmedian(colours)
+            colour_df.loc[i, 'mean_colour2'] = median_col
+            
+            errors = np.array(colour_df[(colour_indices[i] + '_err')])
+            errors = errors[~np.isnan(errors)]
+
+            
+            if (len(errors) % 2) == 0:
+                j = int(len(errors)/2)
+                new_data = sorted(list(colours))
+                l = list(colours).index(new_data[j-1])
+                up = list(colours).index(new_data[j])
+                med_err = 0.5*np.sqrt(errors[l]**2 + errors[up]**2)
+        
+            else:
+                median_index = list(colours).index(median_col)
+                med_err = errors[median_index]
+                
+            med_std = np.nanstd(colours)
+            
+            colour_df.loc[i, 'mean_colour_err2'] = np.sqrt(med_err**2 + med_std**2)
+            
         #save results to csv
         colour_df.to_csv(self.input_path + '/' + name + '_colour.csv', index = False)
