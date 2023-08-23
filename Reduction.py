@@ -1499,6 +1499,9 @@ class lightcurve(object):
                 
             med_std = np.nanstd(colours)
             
+            print(med_err)
+            print(med_std)
+            
             colour_df.loc[i, 'mean_colour_err2'] = np.sqrt(med_err**2 + med_std**2)
             
         #save results to csv
