@@ -1415,7 +1415,7 @@ class lightcurve(object):
         if name == None:
             name = self.name
         
-        results = pd.read_csv(self.input_path + '/' + name + '_results.csv')
+        results = pd.read_csv(self.input_path + '/' + self.day + '_' + name + '_results.csv')
         
         #create consistent dataframe with all magnitude measurements
         colour_df = pd.DataFrame(data = {'filter': [], 'midtime': [], 'mag': [], 'mag_err': []})
@@ -1499,8 +1499,6 @@ class lightcurve(object):
                 
             med_std = np.nanstd(colours)
             
-            print(med_err)
-            print(med_std)
             
             colour_df.loc[i, 'mean_colour_err2'] = np.sqrt(med_err**2 + med_std**2)
             
