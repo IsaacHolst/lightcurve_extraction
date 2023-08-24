@@ -1142,20 +1142,20 @@ class lightcurve(object):
         
         if name == None:
             name = self.name
-
+        
         fig = plt.figure()
-
+        
         results = pd.read_csv(self.input_path + '/' + self.day + '_' + name + '_results.csv')
-
+        
         #get data for specific filter
         mag_r = np.array(results.loc[:, (str(filt) + '_object_mag')])
         midtime = np.array(results.loc[:, (str(filt) + '_midtime')])
         mag_r_err = np.array(results.loc[:, (str(filt) + '_object_mag_err')])
-
+        
         mag_r = mag_r[~np.isnan(mag_r)]
         midtime = midtime[~np.isnan(midtime)]
         mag_r_err = mag_r_err[~np.isnan(mag_r_err)]
-
+        
         #remove all outliers
         mask = (mag_r <upper_ylim) & (mag_r>lower_ylim)
         mag = mag_r[mask]
