@@ -117,6 +117,7 @@ class lightcurve(object):
         #define path for bias and flat images
         path = Path(input_path)
         self.day = str(path.resolve().parents[0])[-2:]
+        self.date = str(path.resolve().parents[0])[-8:]
         base_path = str(path.resolve().parents[2])
         self.bias_path = base_path + '/Bias' + self.day 
         self.flat_path = base_path + '/flats'
@@ -1057,7 +1058,7 @@ class lightcurve(object):
         results = pd.DataFrame(data = {'alpha': [self.alpha]})
         for filt in self.filters:
             filt_index = list(self.filters).index(filt)
-            filt_results = pd.DataFrame(data = {(str(filt) + '_midtime'): self.midtime[filt_index], (str(filt) + '_object_mag'): self.object_r_mag[filt_index], (str(filt) + '_object_mag_err'): self.object_r_mag_err[filt_index], (str(filt) + '_object_reduced_mag'): self.reduced_mag[filt_index]})
+            filt_results = pd.DataFrame(data = {'Day' : self.date, (str(filt) + '_midtime'): self.midtime[filt_index], (str(filt) + '_object_mag'): self.object_r_mag[filt_index], (str(filt) + '_object_mag_err'): self.object_r_mag_err[filt_index], (str(filt) + '_object_reduced_mag'): self.reduced_mag[filt_index]})
             results = pd.concat([results, filt_results], axis = 1)
             
         results.to_csv(self.input_path + '/' + self.day + '_' +  name + '_results.csv', index = False)
