@@ -637,7 +637,7 @@ class lightcurve(object):
         object_name = Horizons(id = name, location = self.telescope_id, epochs = {'start':start.iso, 'stop':end.iso, 'step':step })
         eph = object_name.ephemerides()
         
-        self.alpha = np.nanmedian(eph['alpha_true']) #get median phase angle
+        self.alpha = np.nanmedian(eph['alpha']) #get median phase angle
         self.delta = np.nanmedian(eph['delta']) #get distance of object from earth
         self.r = np.nanmedian(eph['r']) #get distance of object from Sun
         
@@ -1036,7 +1036,7 @@ class lightcurve(object):
     
         self.object_r_mag_err.append(np.sqrt(self.median_rel_err**2 + self.cal_med_rel_err**2 + self.m_err**2))
         
-        self.abs_mag.append(self.median_rel - self.cal_med_rel + self.m - 5*np.log10(self.delta * self.r))
+        self.reduced_mag.append(self.median_rel - self.cal_med_rel + self.m - 5*np.log10(self.delta * self.r))
         
         print("Completed magnitude calculation")
         
@@ -1057,7 +1057,7 @@ class lightcurve(object):
         results = pd.DataFrame(data = {'alpha': [self.alpha]})
         for filt in self.filters:
             filt_index = list(self.filters).index(filt)
-            filt_results = pd.DataFrame(data = {(str(filt) + '_midtime'): self.midtime[filt_index], (str(filt) + '_object_mag'): self.object_r_mag[filt_index], (str(filt) + '_object_mag_err'): self.object_r_mag_err[filt_index], (str(filt) + '_object_absolute_mag'): self.abs_mag[filt_index]})
+            filt_results = pd.DataFrame(data = {(str(filt) + '_midtime'): self.midtime[filt_index], (str(filt) + '_object_mag'): self.object_r_mag[filt_index], (str(filt) + '_object_mag_err'): self.object_r_mag_err[filt_index], (str(filt) + '_object_reduced_mag'): self.reduced_mag[filt_index]})
             results = pd.concat([results, filt_results], axis = 1)
             
         results.to_csv(self.input_path + '/' + self.day + '_' +  name + '_results.csv', index = False)
