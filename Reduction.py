@@ -165,7 +165,7 @@ class lightcurve(object):
         self.alpha = None
         self.r = None
         self.delta = None
-        self.abs_mag = []
+        self.reduced_mag = []
         self.length = None
         self.index = None
         self.min_separations = []
