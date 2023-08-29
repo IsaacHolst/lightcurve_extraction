@@ -1166,6 +1166,11 @@ class lightcurve(object):
             mag_r = mag_r[~np.isnan(mag_r)]
             midtime = midtime[~np.isnan(midtime)]
             mag_r_err = mag_r_err[~np.isnan(mag_r_err)]
+
+        else:
+            mag_r = np.array(self.object_r_mag[filt_index])
+            midtime = np.array(self.midtime[filt_index])
+            mag_r_err = np.array(self.object_r_mag_err[filt_index])
         
         #remove all outliers
         mask = (mag_r <upper_ylim) & (mag_r>lower_ylim)
