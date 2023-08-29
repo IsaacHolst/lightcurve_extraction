@@ -118,7 +118,7 @@ class lightcurve(object):
 
         self.des_id = None
         if des_id != None:
-            self.des_id = 'DES: ' + str(des_id) + ';'
+            self.des_id = 'DES= ' + str(des_id) + ';'
         
         #define path for bias and flat images
         path = Path(input_path)
