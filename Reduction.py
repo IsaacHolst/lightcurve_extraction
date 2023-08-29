@@ -634,10 +634,10 @@ class lightcurve(object):
             y-intercept of best fit line for Dec vs time
         """
 
-        if (name == self.name) & (self.record_id == None):
+        if ((name == self.name) or (name == None)) & (self.record_id == None):
             name = self.name
         
-        elif (name == self.name) & (self.record_id != None):
+        elif ((name == self.name) or (name == None)) & (self.record_id != None):
             name = self.record_id
         
         start = Time(self.start_time, format = 'jd')
