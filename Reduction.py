@@ -1154,6 +1154,10 @@ class lightcurve(object):
             name = self.name
         
         fig = plt.figure()
+        
+        self.get_filters()
+        
+        filt_index = list(self.filters).index(filt)
 
         if os.path.isfile(self.input_path + '/' + self.day + '_' + name + '_results.csv') == True:
             results = pd.read_csv(self.input_path + '/' + self.day + '_' + name + '_results.csv')
