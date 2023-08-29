@@ -97,7 +97,7 @@ class lightcurve(object):
     """
     
     
-    def __init__(self, name, input_path, telescope_id):
+    def __init__(self, name, input_path, telescope_id, des_id = None):
         """
         Initialise lightcurve data set
 
@@ -109,10 +109,16 @@ class lightcurve(object):
             directory for science images
         telescope_id : int
             id number for telescope location in JPL Horizons system
+        des_id : str
+            optional. DES id for JPL Horizons query
         """
         
         self.name = str(name)
         self.input_path = str(input_path) #path for raw_science_data
+
+        self.des_id = None
+        if des_id != None:
+            self.des_id = 'DES: ' + str(des_id) + ';'
         
         #define path for bias and flat images
         path = Path(input_path)
@@ -627,9 +633,12 @@ class lightcurve(object):
         c_dec : float
             y-intercept of best fit line for Dec vs time
         """
-        
-        if name == None:
+
+        if (name == None) & (self.des_id == None):
             name = self.name
+        
+        elif name == None:
+            name = self.des_id
         
         start = Time(self.start_time, format = 'jd')
         end = Time(self.end_time, format = 'jd')
