@@ -176,6 +176,7 @@ class lightcurve(object):
         self.index = None
         self.min_separations = []
         self.col_err = None
+        self.mask = None
         
     def __str__(self):
         
@@ -1041,14 +1042,30 @@ class lightcurve(object):
         Calculate relative object magnitude for each image and compare to
         reference frame relative magnitude. Then add the difference to the
         reference frame object magnitude.
+        
+        Parameters
+        ----------
+        clip : float
+            optional. difference between median value and magnitude above which magnitudes will be cut.
         """
-        
-        self.object_r_mag.append(self.median_rel - self.cal_med_rel + self.m)
-    
-        self.object_r_mag_err.append(np.sqrt(self.median_rel_err**2 + self.cal_med_rel_err**2 + self.m_err**2))
-        
-        self.reduced_mag.append(self.median_rel - self.cal_med_rel + self.m - 5*np.log10(self.delta * self.r))
-        
+        if clip != False:
+            object_r_mag = self.median_rel - self.cal_med_rel + self.m
+            
+            self.mask = (object_r_mag-np.nanmedian(object_r_mag))**2 < clip**2
+            
+            self.object_r_mag.append(object_r_mag[self.mask])
+            
+            self.object_r_mag_err.append((np.sqrt(self.median_rel_err**2 + self.cal_med_rel_err**2 + self.m_err**2))[self.mask])
+            
+            self.reduced_mag.append((self.median_rel - self.cal_med_rel + self.m - 5*np.log10(self.delta * self.r))[self.mask])
+            
+        else:   
+            self.object_r_mag.append(self.median_rel - self.cal_med_rel + self.m)
+            
+            self.object_r_mag_err.append(np.sqrt(self.median_rel_err**2 + self.cal_med_rel_err**2 + self.m_err**2))
+            
+            self.reduced_mag.append(self.median_rel - self.cal_med_rel + self.m - 5*np.log10(self.delta * self.r))
+            
         print("Completed magnitude calculation")
         
     def save_results(self, name = None):
@@ -1180,11 +1197,13 @@ class lightcurve(object):
 
         elif len(self.filters) == len(self.object_r_mag):
             mag_r = np.array(self.object_r_mag[filt_index])
+            self.midtime[filt_index] = np.array(self.midtime[filt_index])[self.mask]
             midtime = np.array(self.midtime[filt_index])
             mag_r_err = np.array(self.object_r_mag_err[filt_index])
         
         else:
             mag_r = np.array(self.object_r_mag[0])
+            self.midtime[filt_index] = np.array(self.midtime[filt_index])[self.mask]
             midtime = np.array(self.midtime[0])
             mag_r_err = np.array(self.object_r_mag_err[0])
         
@@ -1213,7 +1232,7 @@ class lightcurve(object):
         fig.savefig(self.input_path + '/' + self.day + '_' + name + '_' + filt + '_lightcurve.png')
         return fig
     
-    def full_data_reduction(self, biassec, trimsec, gain, readnoise, step = '1m', sigma_clip=3.0, colour = None, second_filter = None, col_err = None):
+    def full_data_reduction(self, biassec, trimsec, gain, readnoise, step = '1m', sigma_clip=3.0, colour = None, second_filter = None, col_err = None, clip = False):
         """
         Complete all necessary reduction and photometry steps for a lightcurve
 
@@ -1264,7 +1283,7 @@ class lightcurve(object):
             m_ra, c_ra, m_dec, c_dec = self.ephemerides(step = step)
             self.catalogue_stars(m_ra, c_ra, m_dec, c_dec, filt)
             self.calibration(m_ra, c_ra, m_dec, c_dec, filt)
-            self.magnitudes()
+            self.magnitudes(clip= clip)
             fig = self.plot_lightcurve(filt)
             
             self.second_filt = None    
@@ -1326,7 +1345,7 @@ class lightcurve(object):
         ref_df = pd.read_csv(self.input_path + '/' + filt + '_ref_frame_index.csv')
         self.ref_frame_index = list(ref_df['ref_frame_index'])[0]
     
-    def extract_lightcurve(self, step = '1m', name = None, colour = None, second_filter = None, col_err = None):
+    def extract_lightcurve(self, step = '1m', name = None, colour = None, second_filter = None, col_err = None, clip = False):
         """
         Complete lightcurve extraction steps if reduction and aperture
         photometry has already been done
@@ -1374,14 +1393,14 @@ class lightcurve(object):
             m_ra, c_ra, m_dec, c_dec = self.ephemerides(step = step, name = name)
             self.catalogue_stars(m_ra, c_ra, m_dec, c_dec, filt)
             self.calibration(m_ra, c_ra, m_dec, c_dec, filt)
-            self.magnitudes()
+            self.magnitudes(clip = clip)
             fig = self.plot_lightcurve(filt, name = name)
             
             self.second_filt = None            
             
         self.save_results(name)
         
-    def extract_single_lightcurve(self, filt, step = '1m', name = None, colour = None, second_filter = None, col_err = None):
+    def extract_single_lightcurve(self, filt, step = '1m', name = None, colour = None, second_filter = None, col_err = None, clip = False):
         """
         Complete lightcurve extraction steps if reduction and aperture
         photometry has already been done
@@ -1428,7 +1447,7 @@ class lightcurve(object):
         m_ra, c_ra, m_dec, c_dec = self.ephemerides(step = step, name = name)
         self.catalogue_stars(m_ra, c_ra, m_dec, c_dec, filt)
         self.calibration(m_ra, c_ra, m_dec, c_dec, filt)
-        self.magnitudes()
+        self.magnitudes(clip = clip)
         fig = self.plot_lightcurve(filt, name = name)
         
         self.second_filt = None        
