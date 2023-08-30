@@ -819,7 +819,8 @@ class lightcurve(object):
                 continue
             
             self.index.append(i)
-            
+
+            star_objids = np.unique(np.array(star_objids))
             temp_objids += list(star_objids)
             
             #calculate differential magnitude of each asteroid and star
@@ -1066,7 +1067,13 @@ class lightcurve(object):
         
         results = pd.DataFrame(data = {'alpha': [self.alpha]})
         for filt in self.filters:
-            filt_index = list(self.filters).index(filt)
+        
+            if len(self.filters) == len(self.object_r_mag):
+            	filt_index = list(self.filters).index(filt)
+            	
+            else:
+            	filt_index = 0
+            
             filt_results = pd.DataFrame(data = {'Day' : self.date, (str(filt) + '_midtime'): self.midtime[filt_index], (str(filt) + '_object_mag'): self.object_r_mag[filt_index], (str(filt) + '_object_mag_err'): self.object_r_mag_err[filt_index], (str(filt) + '_object_reduced_mag'): self.reduced_mag[filt_index]})
             results = pd.concat([results, filt_results], axis = 1)
             
@@ -1159,7 +1166,7 @@ class lightcurve(object):
         
         filt_index = list(self.filters).index(filt)
 
-        if os.path.isfile(self.input_path + '/' + self.day + '_' + name + '_results.csv') == True:
+        if (len(self.object_r_mag) == 0) & (os.path.isfile(self.input_path + '/' + self.day + '_' + name + '_results.csv') == True):
             results = pd.read_csv(self.input_path + '/' + self.day + '_' + name + '_results.csv')
             
             #get data for specific filter
@@ -1171,10 +1178,15 @@ class lightcurve(object):
             midtime = midtime[~np.isnan(midtime)]
             mag_r_err = mag_r_err[~np.isnan(mag_r_err)]
 
-        else:
+        elif len(self.filters) == len(self.object_r_mag):
             mag_r = np.array(self.object_r_mag[filt_index])
             midtime = np.array(self.midtime[filt_index])
             mag_r_err = np.array(self.object_r_mag_err[filt_index])
+        
+        else:
+            mag_r = np.array(self.object_r_mag[0])
+            midtime = np.array(self.midtime[0])
+            mag_r_err = np.array(self.object_r_mag_err[0])
         
         #remove all outliers
         mask = (mag_r <upper_ylim) & (mag_r>lower_ylim)
