@@ -1379,6 +1379,7 @@ class lightcurve(object):
         
         self.object_r_mag = []
         self.object_r_mag_err = []
+        self.reduced_mag = []
         self.midtime = []
         
         self.get_filters()
@@ -1434,6 +1435,7 @@ class lightcurve(object):
         
         self.object_r_mag = []
         self.object_r_mag_err = []
+        self.reduced_mag = []
         self.midtime = []
         
             
