@@ -1198,13 +1198,13 @@ class lightcurve(object):
         elif len(self.filters) == len(self.object_r_mag):
             mag_r = np.array(self.object_r_mag[filt_index])
             self.midtime[filt_index] = np.array(self.midtime[filt_index])[self.mask]
-            midtime = np.array(self.midtime[filt_index])
+            midtime = self.midtime[filt_index]
             mag_r_err = np.array(self.object_r_mag_err[filt_index])
         
         else:
             mag_r = np.array(self.object_r_mag[0])
             self.midtime[0] = np.array(self.midtime[0])[self.mask]
-            midtime = np.array(self.midtime[0])
+            midtime = self.midtime[0]
             mag_r_err = np.array(self.object_r_mag_err[0])
         
         #remove all outliers
