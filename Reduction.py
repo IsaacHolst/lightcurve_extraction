@@ -1084,8 +1084,8 @@ class lightcurve(object):
         
         results = pd.DataFrame(data = {'alpha': [self.alpha]})
         for filt in self.filters:
-        
-            if len(self.filters) == len(self.object_r_mag):
+            filt_index = list(self.filters).index(filt)
+            if filt_index == (len(self.object_r_mag)-1):
             	filt_index = list(self.filters).index(filt)
             	
             else:
@@ -1194,17 +1194,25 @@ class lightcurve(object):
             mag_r = mag_r[~np.isnan(mag_r)]
             midtime = midtime[~np.isnan(midtime)]
             mag_r_err = mag_r_err[~np.isnan(mag_r_err)]
-
-        elif len(self.filters) == len(self.object_r_mag):
+        
+        elif filt_index == (len(self.object_r_mag)-1):
             mag_r = np.array(self.object_r_mag[filt_index])
             self.midtime[filt_index] = np.array(self.midtime[filt_index])[self.mask]
+            if self.mask == None:
+            	self.midtime[filt_index] = self.midtime[filt_index][0]
+            
             midtime = self.midtime[filt_index]
+            	
             mag_r_err = np.array(self.object_r_mag_err[filt_index])
         
         else:
             mag_r = np.array(self.object_r_mag[0])
             self.midtime[0] = np.array(self.midtime[0])[self.mask]
-            midtime = self.midtime[0]
+            if self.mask == None:
+            	self.midtime[filt_index] = self.midtime[filt_index][0]
+            
+            midtime = self.midtime[filt_index]
+            	
             mag_r_err = np.array(self.object_r_mag_err[0])
         
         #remove all outliers
