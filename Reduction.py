@@ -1203,7 +1203,7 @@ class lightcurve(object):
         
         else:
             mag_r = np.array(self.object_r_mag[0])
-            self.midtime[filt_index] = np.array(self.midtime[filt_index])[self.mask]
+            self.midtime[0] = np.array(self.midtime[0])[self.mask]
             midtime = np.array(self.midtime[0])
             mag_r_err = np.array(self.object_r_mag_err[0])
         
