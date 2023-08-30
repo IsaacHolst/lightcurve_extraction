@@ -1507,33 +1507,16 @@ class lightcurve(object):
                 colour_df.loc[i, (filter1 + '-' + filter2 + '_err')] = np.sqrt(colour_df.loc[i, 'mag_err']**2 + colour_df.loc[i+1, 'mag_err']**2)
         
         colour_df['colour_index'] = np.nan
-        colour_df['mean_colour'] = np.nan
-        colour_df['mean_colour_err'] = np.nan
-        colour_df['mean_colour2'] = np.nan
-        colour_df['mean_colour_err2'] = np.nan
+        colour_df['median_colour'] = np.nan
+        colour_df['median_colour_err'] = np.nan
         
-        #calculate mean of each colour index and errors
-        for i in range(len(colour_indices)):
-            colour_df.loc[i, 'colour_index'] = colour_indices[i]
-            colour_df.loc[i, 'mean_colour'] = np.nanmean(np.array(colour_df[colour_indices[i]]))
-            
-            errors = np.array(colour_df[(colour_indices[i] + '_err')])
-            errors = errors[~np.isnan(errors)]
-                              
-            sum_err = 0
-            for j in errors:
-                sum_err += j**2
-            
-            #propagate the mean error
-            colour_df.loc[i, 'mean_colour_err'] = np.sqrt(sum_err)/len(errors)
-        
-        #calculate mean of each colour index and errors
+        #calculate median of each colour index and errors
         for i in range(len(colour_indices)):
             colour_df.loc[i, 'colour_index'] = colour_indices[i]
             colours = np.array(colour_df[colour_indices[i]])
             colours = colours[~np.isnan(colours)]
             median_col = np.nanmedian(colours)
-            colour_df.loc[i, 'mean_colour2'] = median_col
+            colour_df.loc[i, 'median_colour'] = median_col
             
             errors = np.array(colour_df[(colour_indices[i] + '_err')])
             errors = errors[~np.isnan(errors)]
@@ -1553,7 +1536,7 @@ class lightcurve(object):
             med_std = np.nanstd(colours)
             
             
-            colour_df.loc[i, 'mean_colour_err2'] = np.sqrt(med_err**2 + med_std**2)
+            colour_df.loc[i, 'median_colour_err'] = np.sqrt(med_err**2 + med_std**2)
             
         #save results to csv
         colour_df.to_csv(self.input_path + '/' + name + '_colour.csv', index = False)
