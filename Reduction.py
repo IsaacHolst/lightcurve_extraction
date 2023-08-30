@@ -1198,7 +1198,7 @@ class lightcurve(object):
         elif filt_index == (len(self.object_r_mag)-1):
             mag_r = np.array(self.object_r_mag[filt_index])
             self.midtime[filt_index] = np.array(self.midtime[filt_index])[self.mask]
-            if self.mask == None:
+            if type(self.mask) != np.ndarray:
             	self.midtime[filt_index] = self.midtime[filt_index][0]
             
             midtime = self.midtime[filt_index]
@@ -1208,7 +1208,7 @@ class lightcurve(object):
         else:
             mag_r = np.array(self.object_r_mag[0])
             self.midtime[0] = np.array(self.midtime[0])[self.mask]
-            if self.mask == None:
+            if type(self.mask) != np.ndarray:
             	self.midtime[filt_index] = self.midtime[filt_index][0]
             
             midtime = self.midtime[filt_index]
