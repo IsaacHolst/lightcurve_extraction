@@ -177,6 +177,8 @@ class lightcurve(object):
         self.min_separations = []
         self.col_err = None
         self.mask = None
+        self.absolute_threshold = None
+        self.std_threshold = 10
         
     def __str__(self):
         
@@ -444,7 +446,12 @@ class lightcurve(object):
             #Set up psf fitting parmeters and routines
             fwhm_psf=4.0
             sigma_psf=fwhm_psf/2.354
-            star_find = DAOStarFinder(fwhm=fwhm_psf, threshold=10.0*std,peakmax=60000.0,sigma_radius=5.0,sharphi=1.0)
+            if self.absolute_threshold == None:
+                threshold = self.std_threshold * std
+
+            else:
+                threshold = self.absolute_threshold
+            star_find = DAOStarFinder(fwhm=fwhm_psf, threshold=threshold,peakmax=60000.0,sigma_radius=5.0,sharphi=1.0)
         
             daogroup = DAOGroup(9.0)
             med_bkg = MMMBackground()
@@ -551,7 +558,12 @@ class lightcurve(object):
             mean, median, std = sigma_clipped_stats(img, sigma=2.5)
             
             #setup and run source detection
-            starfind = DAOStarFinder(10*std, self.fwhm[i])            
+            if self.absolute_threshold == None:
+                threshold = self.std_threshold * std
+
+            else:
+                threshold = self.absolute_threshold
+            starfind = DAOStarFinder(threshold, self.fwhm[i])            
             table = starfind(img)
             
             #define aperture and annuli positions
