@@ -35,6 +35,7 @@ import operator as op
 import numpy.ma as ma
 from scipy import odr
 from photutils.background import MMMBackground
+from scipy import interpolate
 
 
 
@@ -637,14 +638,10 @@ class lightcurve(object):
         
         Returns
         -------
-        m_ra : float
-            gradient of best fit line for RA vs time
-        c_ra : float
-            y-intercept of best fit line for RA vs time
-        y_dec : float
-            gradient of best fit line for Dec vs time
-        c_dec : float
-            y-intercept of best fit line for Dec vs time
+        f_ra : scipy.interpolate._fitpack2.LSQUnivariateSpline
+            fit for RA vs time
+        f_dec : scipy.interpolate._fitpack2.LSQUnivariateSpline
+            fit for DEC vs time
         """
 
         if ((name == self.name) or (name == None)) & (self.record_id == None):
@@ -667,33 +664,29 @@ class lightcurve(object):
         #create SkyCoord objects
         eph['Coordinates'] = SkyCoord(eph['RA'], eph['DEC'], unit = u.degree)
         
-        #create linear fit to ephemerides data to get position at exact times
-        x = eph['datetime_jd']
-        y_ra = eph['Coordinates'].ra.degree
-        m_ra,c_ra = np.polyfit(x, y_ra , 1)
+        times = Time(list(eph['datetime_jd']),format="jd")
+        x = eph['Coordinates'].ra.degree
+        y = eph['Coordinates'].dec.degree
+        t = np.array([t.jd for t in times])
         
-        y_dec = eph['Coordinates'].dec.degree
-        m_dec,c_dec = np.polyfit(x, y_dec , 1)
+        f_ra = interpolate.UnivariateSpline(t, x)
+        f_dec = interpolate.UnivariateSpline(t, y)
         
         print("Completed ephemerides query")
-        return m_ra, c_ra, m_dec, c_dec
+        return f_ra, f_dec
     
             
-    def catalogue_stars(self, m_ra, c_ra, m_dec, c_dec, filt):
+    def catalogue_stars(self, f_ra, f_dec, filt):
         """
         Match all sources to PS1 catalogue. Then pick out only stellar sources.
         Then, determine which stars appear in all images to use for calbration.
         Finally, lookup and store all necessary magnitude data for each star.
         Parameters
         ----------
-        m_ra : float
-            gradient of best fit line for RA vs time
-        c_ra : float
-            y-intercept of best fit line for RA vs time
-        y_dec : float
-            gradient of best fit line for Dec vs time
-        c_dec : float
-            y-intercept of best fit line for Dec vs time
+        f_ra : scipy.interpolate._fitpack2.LSQUnivariateSpline
+            fit for RA vs time
+        f_dec : scipy.interpolate._fitpack2.LSQUnivariateSpline
+            fit for DEC vs time
         filt : str
             filter name
         """
@@ -729,8 +722,8 @@ class lightcurve(object):
             
             #calculate exact position of object
             midtime.append(header['jd'] + header['ELAPSED']/(2*24*3600))
-            RA = m_ra*midtime[-1] + c_ra
-            Dec = m_dec*midtime[-1] + c_dec
+            RA = float(f_ra(midtime[-1]))
+            Dec = float(f_dec(midtime[-1]))
             eph_coord = SkyCoord(RA, Dec,  unit=u.degree)
         
             #calculate separations between object and each matched source
@@ -904,7 +897,7 @@ class lightcurve(object):
         
         print("Completed star matching")
     
-    def calibration(self, m_ra, c_ra, m_dec, c_dec, filt):
+    def calibration(self, f_ra, f_dec, filt):
         """
         Calibrate the reference frame (image with the lowest median fwhm) using
         orthogonal distance regression modelling and calculate a calibrated
@@ -913,14 +906,10 @@ class lightcurve(object):
 
         Parameters
         ----------
-        m_ra : float
-            gradient of best fit line for RA vs time
-        c_ra : float
-            y-intercept of best fit line for RA vs time
-        y_dec : float
-            gradient of best fit line for Dec vs time
-        c_dec : float
-            y-intercept of best fit line for Dec vs time
+        f_ra : scipy.interpolate._fitpack2.LSQUnivariateSpline
+            fit for RA vs time
+        f_dec : scipy.interpolate._fitpack2.LSQUnivariateSpline
+            fit for DEC vs time
         filt : str
             filter name
 
@@ -939,8 +928,8 @@ class lightcurve(object):
         
         #calculate exact position of asteroid
         midtime = (header['jd'] + header['ELAPSED']/(2*24*3600))
-        RA = m_ra*midtime + c_ra
-        Dec = m_dec*midtime + c_dec
+        RA = float(f_ra(midtime))
+        Dec = float(f_dec(midtime))
         eph_coord = SkyCoord(RA, Dec,  unit=u.degree)
             
         #calculate coordinates and separations
@@ -1300,9 +1289,9 @@ class lightcurve(object):
             self.plate_solve(filt)
             self.iterative(filt)
             self.detect_and_phot(filt)
-            m_ra, c_ra, m_dec, c_dec = self.ephemerides(step = step)
-            self.catalogue_stars(m_ra, c_ra, m_dec, c_dec, filt)
-            self.calibration(m_ra, c_ra, m_dec, c_dec, filt)
+            f_ra, f_dec = self.ephemerides(step = step)
+            self.catalogue_stars(f_ra, f_dec, filt)
+            self.calibration(f_ra, f_dec, filt)
             self.magnitudes(clip= clip)
             fig = self.plot_lightcurve(filt)
             
@@ -1411,9 +1400,9 @@ class lightcurve(object):
                 
             self.get_epoch_range()
             self.get_ref_index(filt)
-            m_ra, c_ra, m_dec, c_dec = self.ephemerides(step = step, name = name)
-            self.catalogue_stars(m_ra, c_ra, m_dec, c_dec, filt)
-            self.calibration(m_ra, c_ra, m_dec, c_dec, filt)
+            f_ra, f_dec = self.ephemerides(step = step, name = name)
+            self.catalogue_stars(f_ra, f_dec, filt)
+            self.calibration(f_ra, f_dec, filt)
             self.magnitudes(clip = clip)
             fig = self.plot_lightcurve(filt, name = name)
             
@@ -1466,9 +1455,9 @@ class lightcurve(object):
             
         self.get_epoch_range()
         self.get_ref_index(filt)
-        m_ra, c_ra, m_dec, c_dec = self.ephemerides(step = step, name = name)
-        self.catalogue_stars(m_ra, c_ra, m_dec, c_dec, filt)
-        self.calibration(m_ra, c_ra, m_dec, c_dec, filt)
+        f_ra, f_dec = self.ephemerides(step = step, name = name)
+        self.catalogue_stars(f_ra, f_dec, filt)
+        self.calibration(f_ra, f_dec, filt)
         self.magnitudes(clip = clip)
         fig = self.plot_lightcurve(filt, name = name)
         
