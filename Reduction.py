@@ -36,6 +36,7 @@ import numpy.ma as ma
 from scipy import odr
 from photutils.background import MMMBackground
 from scipy import interpolate
+from scipy.stats import median_abs_deviation as MAD
 
 
 
@@ -1020,9 +1021,9 @@ class lightcurve(object):
                 median_index = list(self.rel_df.loc[:, (str('rel_mag' + str(i)))]).index(median_rel[z])
                 med_err = self.rel_df.loc[:, (str('rel_mag_err' + str(i)))][median_index]
                 
-            med_std = np.nanstd(np.array(self.rel_df.loc[:, (str('rel_mag'+str(i)))]))
+            med_mad = MAD(np.array(self.rel_df.loc[:, (str('rel_mag'+str(i)))]))
             
-            median_rel_err.append(np.sqrt(med_err**2 + med_std**2))
+            median_rel_err.append(med_mad)
         
         self.median_rel, self.median_rel_err = np.array(median_rel), np.array(median_rel_err)
         
